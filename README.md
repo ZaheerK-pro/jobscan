@@ -1,4 +1,4 @@
-# JobScan Web App
+# JobScan Web Application
 
 ## Description
 JobScan is a web application built with the MERN stack (MongoDB, Express, React, Node.js) that connects job seekers with companies. 
