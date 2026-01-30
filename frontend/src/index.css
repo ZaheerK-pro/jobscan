@@ -74,3 +74,15 @@
       @apply bg-background text-foreground;
     }
   }
+
+  @layer utilities {
+    .text-gradient {
+      @apply bg-clip-text text-transparent bg-gradient-to-r from-[#6A38C2] via-[#8B5CF6] to-[#A78BFA];
+    }
+    .glass {
+      @apply bg-white/70 backdrop-blur-xl border border-white/20;
+    }
+    .glass-dark {
+      @apply bg-black/10 backdrop-blur-xl border border-white/10;
+    }
+  }
