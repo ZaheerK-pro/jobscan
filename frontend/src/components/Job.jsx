@@ -48,7 +48,7 @@ const Job = ({ job }) => {
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="font-bold text-slate-900 truncate">{job?.company?.name}</h3>
-          <p className="text-sm text-slate-500">India</p>
+          <p className="text-sm text-slate-500">{job?.location || '—'}</p>
         </div>
       </div>
 
@@ -71,7 +71,7 @@ const Job = ({ job }) => {
 
       <div className="mt-6 flex flex-wrap gap-3">
         <Button
-          onClick={() => navigate(`/description/${job?._id}`)}
+          onClick={() => navigate(`/description/${job?.id ?? job?._id}`)}
           className="flex-1 min-w-[100px] rounded-xl bg-gradient-to-r from-[#6A38C2] to-[#8B5CF6] font-semibold shadow-lg shadow-[#6A38C2]/25 hover:shadow-xl hover:shadow-[#6A38C2]/30"
         >
           View details

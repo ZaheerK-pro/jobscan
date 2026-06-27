@@ -1,35 +1,35 @@
 import React from 'react'
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { MoreHorizontal } from 'lucide-react';
-import { useSelector } from 'react-redux';
-import { toast } from 'sonner';
-import { APPLICATION_API_END_POINT } from '@/utils/constant';
-import axios from 'axios';
-
-const shortlistingStatus = ["Accepted", "Rejected"];
+import { useSelector, useDispatch } from 'react-redux'
+import { APPLICATION_API_END_POINT } from '@/utils/constant'
+import axios from 'axios'
+import { setAllApplicants } from '@/redux/applicationSlice'
 
 const ApplicantsTable = () => {
-    const { applicants } = useSelector(store => store.application);
+    const { applicants } = useSelector(store => store.application)
+    const dispatch = useDispatch()
 
-    const statusHandler = async (status, id) => {
-        console.log('called');
+    const handleViewResume = async (item) => {
+        const applicationId = item?.id ?? item?._id
+        const resumeUrl = item?.applicant?.profile?.resume
+        if (!resumeUrl) return
         try {
-            axios.defaults.withCredentials = true;
-            const res = await axios.post(`${APPLICATION_API_END_POINT}/status/${id}/update`, { status });
-            console.log(res);
-            if (res.data.success) {
-                toast.success(res.data.message);
-            }
-        } catch (error) {
-            toast.error(error.response.data.message);
+            axios.defaults.withCredentials = true
+            await axios.post(`${APPLICATION_API_END_POINT}/${applicationId}/view`, {}, { withCredentials: true })
+            const updated = applicants?.applications?.map((a) =>
+                (a?.id ?? a?._id) === applicationId ? { ...a, status: 'viewed' } : a
+            )
+            if (applicants && updated) dispatch(setAllApplicants({ ...applicants, applications: updated }))
+        } catch (_) {
+            // still open resume if mark failed
         }
+        window.open(resumeUrl, '_blank', 'noopener,noreferrer')
     }
 
     return (
         <div>
             <Table>
-                <TableCaption>A list of your recent applied user</TableCaption>
+                <TableCaption>A list of applicants for this job. Click &quot;View resume&quot; to open their resume (they will see &quot;Recruiter viewed your resume&quot;).</TableCaption>
                 <TableHeader>
                     <TableRow>
                         <TableHead>FullName</TableHead>
@@ -37,48 +37,33 @@ const ApplicantsTable = () => {
                         <TableHead>Contact</TableHead>
                         <TableHead>Resume</TableHead>
                         <TableHead>Date</TableHead>
-                        <TableHead className="text-right">Action</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {
                         applicants && applicants?.applications?.map((item) => (
-                            <tr key={item._id}>
+                            <TableRow key={item?.id ?? item?._id}>
                                 <TableCell>{item?.applicant?.fullname}</TableCell>
                                 <TableCell>{item?.applicant?.email}</TableCell>
                                 <TableCell>{item?.applicant?.phoneNumber}</TableCell>
-                                <TableCell >
-                                    {
-                                        item.applicant?.profile?.resume ? <a className="text-blue-600 cursor-pointer" href={item?.applicant?.profile?.resume} target="_blank" rel="noopener noreferrer">{item?.applicant?.profile?.resumeOriginalName}</a> : <span>NA</span>
-                                    }
+                                <TableCell>
+                                    {item?.applicant?.profile?.resume ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleViewResume(item)}
+                                            className="text-[#6A38C2] font-medium hover:underline text-left"
+                                        >
+                                            View resume
+                                        </button>
+                                    ) : (
+                                        <span className="text-slate-500">No resume</span>
+                                    )}
                                 </TableCell>
-                                <TableCell>{item?.applicant.createdAt.split("T")[0]}</TableCell>
-                                <TableCell className="float-right cursor-pointer">
-                                    <Popover>
-                                        <PopoverTrigger>
-                                            <MoreHorizontal />
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-32">
-                                            {
-                                                shortlistingStatus.map((status, index) => {
-                                                    return (
-                                                        <div onClick={() => statusHandler(status, item?._id)} key={index} className='flex w-fit items-center my-2 cursor-pointer'>
-                                                            <span>{status}</span>
-                                                        </div>
-                                                    )
-                                                })
-                                            }
-                                        </PopoverContent>
-                                    </Popover>
-
-                                </TableCell>
-
-                            </tr>
+                                <TableCell>{item?.applicant?.createdAt?.split?.('T')?.[0]}</TableCell>
+                            </TableRow>
                         ))
                     }
-
                 </TableBody>
-
             </Table>
         </div>
     )

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Button } from './ui/button'
 import { Search } from 'lucide-react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { setSearchedQuery } from '@/redux/jobSlice'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -10,8 +10,13 @@ const HeroSection = () => {
   const [query, setQuery] = useState('')
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const { user } = useSelector((store) => store.auth)
 
   const searchJobHandler = () => {
+    if (!user) {
+      navigate('/signup')
+      return
+    }
     dispatch(setSearchedQuery(query))
     navigate('/browse')
   }
@@ -87,11 +92,15 @@ const HeroSection = () => {
           className="mt-6 text-sm sm:text-base text-slate-500 flex flex-wrap items-center justify-center gap-2"
         >
           <span>Try:</span>
-          {['Frontend Developer', 'Data Science', 'Full Stack', 'Graphic Designer'].map((term, i) => (
+          {['Frontend Developer', 'Data Science', 'Full Stack', 'Graphic Designer'].map((term) => (
             <button
               key={term}
               type="button"
               onClick={() => {
+                if (!user) {
+                  navigate('/signup')
+                  return
+                }
                 setQuery(term)
                 dispatch(setSearchedQuery(term))
                 navigate('/browse')

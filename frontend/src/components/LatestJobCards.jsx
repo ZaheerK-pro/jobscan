@@ -8,7 +8,7 @@ const LatestJobCards = ({ job }) => {
   const navigate = useNavigate()
   return (
     <motion.div
-      onClick={() => navigate(`/description/${job._id}`)}
+      onClick={() => navigate(`/description/${job?.id ?? job._id}`)}
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-20px' }}

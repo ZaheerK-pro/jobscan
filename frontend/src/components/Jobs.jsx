@@ -1,34 +1,85 @@
-import React, { useEffect, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from './shared/Navbar'
 import FilterCard from './FilterCard'
 import Job from './Job'
-import { useSelector } from 'react-redux'
-import { Briefcase } from 'lucide-react'
+import useGetAllJobs from '@/hooks/useGetAllJobs'
+import { useDispatch, useSelector } from 'react-redux'
+import { setSearchedQuery } from '@/redux/jobSlice'
+import { Briefcase, Search } from 'lucide-react'
+import { Input } from './ui/input'
+import { Button } from './ui/button'
 
 const Jobs = () => {
+  useGetAllJobs()
   const { allJobs, searchedQuery } = useSelector((store) => store.job)
-  const [filterJobs, setFilterJobs] = useState(allJobs)
+  const dispatch = useDispatch()
+  const [searchInput, setSearchInput] = useState(searchedQuery ?? '')
+  const [filterLocation, setFilterLocation] = useState('All')
+  const [filterJobType, setFilterJobType] = useState('All')
 
-  useEffect(() => {
-    if (searchedQuery) {
-      const filtered = allJobs.filter(
+  const filterJobs = useMemo(() => {
+    let list = allJobs ?? []
+    const q = searchInput?.trim()?.toLowerCase()
+    if (q) {
+      list = list.filter(
         (job) =>
-          job.title?.toLowerCase().includes(searchedQuery.toLowerCase()) ||
-          job.description?.toLowerCase().includes(searchedQuery.toLowerCase()) ||
-          job.location?.toLowerCase().includes(searchedQuery.toLowerCase())
+          job.title?.toLowerCase().includes(q) ||
+          job.description?.toLowerCase().includes(q) ||
+          job.location?.toLowerCase().includes(q) ||
+          job.company?.name?.toLowerCase().includes(q)
       )
-      setFilterJobs(filtered)
-    } else {
-      setFilterJobs(allJobs)
     }
-  }, [allJobs, searchedQuery])
+    if (filterLocation && filterLocation !== 'All') {
+      list = list.filter((job) => job?.location === filterLocation)
+    }
+    if (filterJobType && filterJobType !== 'All') {
+      list = list.filter((job) => job?.jobType === filterJobType)
+    }
+    return list
+  }, [allJobs, searchInput, filterLocation, filterJobType])
+
+  const handleSearch = () => {
+    dispatch(setSearchedQuery(searchInput.trim()))
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        {/* Search bar */}
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-8"
+        >
+          <div className="rounded-2xl border-2 border-slate-200 bg-white p-4 sm:p-6 shadow-lg shadow-slate-200/50">
+            <label className="block text-sm font-semibold text-slate-700 mb-3">Search jobs</label>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  type="search"
+                  placeholder="Job title, company, location..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSearch())}
+                  className="pl-10 h-11 rounded-xl border-2 border-slate-200 focus-visible:ring-[#6A38C2]/30 focus-visible:border-[#6A38C2]/50"
+                />
+              </div>
+              <Button
+                onClick={handleSearch}
+                className="h-11 rounded-xl bg-gradient-to-r from-[#6A38C2] to-[#8B5CF6] font-semibold shadow-md hover:shadow-lg shrink-0"
+              >
+                <Search className="h-4 w-4 mr-2 sm:inline" />
+                Search
+              </Button>
+            </div>
+          </div>
+        </motion.section>
+
         {/* Page header */}
         <motion.header
           initial={{ opacity: 0, y: 16 }}
@@ -42,7 +93,7 @@ const Jobs = () => {
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
-                Find your <span className="text-gradient">next role</span>
+                Find your <span className="bg-gradient-to-r from-[#6A38C2] to-[#8B5CF6] bg-clip-text text-transparent">next role</span>
               </h1>
               <p className="text-slate-600 mt-0.5">
                 {filterJobs.length} {filterJobs.length === 1 ? 'job' : 'jobs'} found
@@ -56,7 +107,13 @@ const Jobs = () => {
           {/* Sidebar - filters */}
           <div className="lg:w-72 shrink-0">
             <div className="lg:sticky lg:top-24">
-              <FilterCard />
+              <FilterCard
+                allJobs={allJobs}
+                filterLocation={filterLocation}
+                filterJobType={filterJobType}
+                onLocationChange={setFilterLocation}
+                onJobTypeChange={setFilterJobType}
+              />
             </div>
           </div>
 
@@ -82,7 +139,7 @@ const Jobs = () => {
                 <AnimatePresence mode="popLayout">
                   {filterJobs.map((job) => (
                     <motion.div
-                      key={job?._id}
+                      key={job?.id ?? job?._id}
                       layout
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}

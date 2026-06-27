@@ -1,6 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import Navbar from './shared/Navbar'
 import Footer from './shared/Footer'
 import { Button } from './ui/button'
@@ -41,6 +42,8 @@ const benefits = [
 ]
 
 const Careers = () => {
+  const { user } = useSelector((store) => store.auth)
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <Navbar />
@@ -183,22 +186,45 @@ const Careers = () => {
               JobScan helps you find jobs at top companies. Browse thousands of open positions and apply in one click.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-              <Button
-                asChild
-                className="h-12 rounded-xl bg-gradient-to-r from-[#6A38C2] to-[#8B5CF6] px-8 text-base font-semibold shadow-lg shadow-[#6A38C2]/25 hover:shadow-xl hover:shadow-[#6A38C2]/30"
-              >
-                <Link to="/browse">
-                  Browse all jobs
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="h-12 rounded-xl border-2 border-slate-200 px-8 text-base font-semibold hover:border-[#6A38C2]/40 hover:bg-[#6A38C2]/5 hover:text-[#6A38C2]"
-              >
-                <Link to="/jobs">Jobs with filters</Link>
-              </Button>
+              {user ? (
+                <>
+                  <Button
+                    asChild
+                    className="h-12 rounded-xl bg-gradient-to-r from-[#6A38C2] to-[#8B5CF6] px-8 text-base font-semibold shadow-lg shadow-[#6A38C2]/25 hover:shadow-xl hover:shadow-[#6A38C2]/30"
+                  >
+                    <Link to="/browse">
+                      Browse all jobs
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-12 rounded-xl border-2 border-slate-200 px-8 text-base font-semibold hover:border-[#6A38C2]/40 hover:bg-[#6A38C2]/5 hover:text-[#6A38C2]"
+                  >
+                    <Link to="/jobs">Jobs with filters</Link>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    asChild
+                    className="h-12 rounded-xl bg-gradient-to-r from-[#6A38C2] to-[#8B5CF6] px-8 text-base font-semibold shadow-lg shadow-[#6A38C2]/25 hover:shadow-xl hover:shadow-[#6A38C2]/30"
+                  >
+                    <Link to="/signup">
+                      Sign up to browse jobs
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-12 rounded-xl border-2 border-slate-200 px-8 text-base font-semibold hover:border-[#6A38C2]/40 hover:bg-[#6A38C2]/5 hover:text-[#6A38C2]"
+                  >
+                    <Link to="/signup">Sign up to use filters</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </motion.div>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog'
 import { Label } from './ui/label'
 import { Input } from './ui/input'
@@ -19,10 +19,23 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
         email: user?.email || "",
         phoneNumber: user?.phoneNumber || "",
         bio: user?.profile?.bio || "",
-        skills: user?.profile?.skills?.map(skill => skill) || "",
-        file: user?.profile?.resume || ""
+        skills: Array.isArray(user?.profile?.skills) ? user.profile.skills.join(", ") : "",
+        file: null
     });
     const dispatch = useDispatch();
+
+    useEffect(() => {
+        if (open && user) {
+            setInput({
+                fullname: user.fullname || "",
+                email: user.email || "",
+                phoneNumber: user.phoneNumber || "",
+                bio: user.profile?.bio || "",
+                skills: Array.isArray(user.profile?.skills) ? user.profile.skills.join(", ") : "",
+                file: null
+            });
+        }
+    }, [open, user]);
 
     const changeEventHandler = (e) => {
         setInput({ ...input, [e.target.name]: e.target.value });
@@ -40,8 +53,8 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
         formData.append("email", input.email);
         formData.append("phoneNumber", input.phoneNumber);
         formData.append("bio", input.bio);
-        formData.append("skills", input.skills);
-        if (input.file) {
+        formData.append("skills", typeof input.skills === "string" ? input.skills : (input.skills ?? ""));
+        if (input.file && input.file instanceof File) {
             formData.append("file", input.file);
         }
         try {
@@ -63,7 +76,6 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
             setLoading(false);
         }
         setOpen(false);
-        console.log(input);
     }
 
 
@@ -78,10 +90,10 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
                     <form onSubmit={submitHandler}>
                         <div className='grid gap-4 py-4'>
                             <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="name" className="text-right">Name</Label>
+                                <Label htmlFor="fullname" className="text-right">Name</Label>
                                 <Input
-                                    id="name"
-                                    name="name"
+                                    id="fullname"
+                                    name="fullname"
                                     type="text"
                                     value={input.fullname}
                                     onChange={changeEventHandler}
@@ -100,10 +112,10 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
                                 />
                             </div>
                             <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="number" className="text-right">Number</Label>
+                                <Label htmlFor="phoneNumber" className="text-right">Number</Label>
                                 <Input
-                                    id="number"
-                                    name="number"
+                                    id="phoneNumber"
+                                    name="phoneNumber"
                                     value={input.phoneNumber}
                                     onChange={changeEventHandler}
                                     className="col-span-3"

@@ -11,7 +11,7 @@ const CompaniesTable = () => {
     const [filterCompany, setFilterCompany] = useState(companies);
     const navigate = useNavigate();
     useEffect(()=>{
-        const filteredCompany = companies.length >= 0 && companies.filter((company)=>{
+        const filteredCompany = (companies ?? []).filter((company)=>{
             if(!searchCompanyByText){
                 return true
             };
@@ -35,26 +35,26 @@ const CompaniesTable = () => {
                 <TableBody>
                     {
                         filterCompany?.map((company) => (
-                            <tr>
+                            <TableRow key={company?.id ?? company._id}>
                                 <TableCell>
                                     <Avatar>
                                         <AvatarImage src={company.logo}/>
                                     </Avatar>
                                 </TableCell>
                                 <TableCell>{company.name}</TableCell>
-                                <TableCell>{company.createdAt.split("T")[0]}</TableCell>
+                                <TableCell>{company?.createdAt?.split?.("T")?.[0] ?? '—'}</TableCell>
                                 <TableCell className="text-right cursor-pointer">
                                     <Popover>
                                         <PopoverTrigger><MoreHorizontal /></PopoverTrigger>
                                         <PopoverContent className="w-32">
-                                            <div onClick={()=> navigate(`/admin/companies/${company._id}`)} className='flex items-center gap-2 w-fit cursor-pointer'>
+                                            <div onClick={()=> navigate(`/admin/companies/${company?.id ?? company._id}`)} className='flex items-center gap-2 w-fit cursor-pointer'>
                                                 <Edit2 className='w-4' />
                                                 <span>Edit</span>
                                             </div>
                                         </PopoverContent>
                                     </Popover>
                                 </TableCell>
-                            </tr>
+                            </TableRow>
 
                         ))
                     }

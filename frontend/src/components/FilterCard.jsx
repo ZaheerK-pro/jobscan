@@ -1,39 +1,24 @@
-import React, { useEffect, useState } from 'react'
+import React, { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { RadioGroup, RadioGroupItem } from './ui/radio-group'
 import { Label } from './ui/label'
 import { Button } from './ui/button'
-import { useDispatch } from 'react-redux'
-import { setSearchedQuery } from '@/redux/jobSlice'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { SlidersHorizontal, X } from 'lucide-react'
 
-const filterData = [
-  {
-    filterType: 'Location',
-    array: ['Delhi NCR', 'Bangalore', 'Hyderabad', 'Pune', 'Mumbai'],
-  },
-  {
-    filterType: 'Industry',
-    array: ['Frontend Developer', 'Backend Developer', 'FullStack Developer'],
-  },
-  {
-    filterType: 'Salary',
-    array: ['0-40k', '42-1lakh', '1lakh to 5lakh'],
-  },
-]
+const JOB_TYPES = ['All', 'Full-time', 'Part-time', 'Contract', 'Internship', 'Remote', 'Freelance']
 
-const FilterCard = () => {
-  const [selectedValue, setSelectedValue] = useState('')
-  const dispatch = useDispatch()
+const FilterCard = ({ allJobs = [], filterLocation, filterJobType, onLocationChange, onJobTypeChange }) => {
+  const locations = useMemo(() => {
+    const set = new Set()
+    ;(allJobs ?? []).forEach((job) => job?.location && set.add(job.location))
+    return ['All', ...Array.from(set).sort()]
+  }, [allJobs])
 
-  const changeHandler = (value) => setSelectedValue(value)
-
-  useEffect(() => {
-    dispatch(setSearchedQuery(selectedValue))
-  }, [selectedValue, dispatch])
+  const hasActiveFilters = (filterLocation && filterLocation !== 'All') || (filterJobType && filterJobType !== 'All')
 
   const clearFilters = () => {
-    setSelectedValue('')
+    onLocationChange?.('All')
+    onJobTypeChange?.('All')
   }
 
   return (
@@ -48,9 +33,9 @@ const FilterCard = () => {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#6A38C2] to-[#8B5CF6] text-white">
             <SlidersHorizontal className="h-5 w-5" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900">Filter jobs</h2>
+          <h2 className="text-xl font-bold text-slate-900">Filters</h2>
         </div>
-        {selectedValue && (
+        {hasActiveFilters && (
           <Button
             variant="ghost"
             size="sm"
@@ -65,35 +50,38 @@ const FilterCard = () => {
 
       <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent mb-6" />
 
-      <RadioGroup value={selectedValue} onValueChange={changeHandler} className="space-y-8">
-        {filterData.map((data, index) => (
-          <div key={data.filterType}>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">
-              {data.filterType}
-            </h3>
-            <div className="space-y-2.5">
-              {data.array.map((item, idx) => {
-                const itemId = `filter-${index}-${idx}`
-                const isSelected = selectedValue === item
-                return (
-                  <Label
-                    key={itemId}
-                    htmlFor={itemId}
-                    className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 px-4 py-3 transition-all duration-200 ${
-                      isSelected
-                        ? 'border-[#6A38C2]/50 bg-[#6A38C2]/5 text-slate-900'
-                        : 'border-slate-100 bg-slate-50/50 text-slate-600 hover:border-slate-200 hover:bg-slate-100/50'
-                    }`}
-                  >
-                    <RadioGroupItem value={item} id={itemId} className="border-2 border-slate-300" />
-                    <span className="font-medium">{item}</span>
-                  </Label>
-                )
-              })}
-            </div>
-          </div>
-        ))}
-      </RadioGroup>
+      <div className="space-y-6">
+        <div>
+          <Label className="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-2 block">Location</Label>
+          <Select value={filterLocation || 'All'} onValueChange={(v) => onLocationChange?.(v)}>
+            <SelectTrigger className="rounded-xl border-2 border-slate-200 focus:ring-[#6A38C2]/30">
+              <SelectValue placeholder="All locations" />
+            </SelectTrigger>
+            <SelectContent>
+              {locations.map((loc) => (
+                <SelectItem key={loc} value={loc} className="rounded-lg">
+                  {loc}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-2 block">Job type</Label>
+          <Select value={filterJobType || 'All'} onValueChange={(v) => onJobTypeChange?.(v)}>
+            <SelectTrigger className="rounded-xl border-2 border-slate-200 focus:ring-[#6A38C2]/30">
+              <SelectValue placeholder="All types" />
+            </SelectTrigger>
+            <SelectContent>
+              {JOB_TYPES.map((type) => (
+                <SelectItem key={type} value={type} className="rounded-lg">
+                  {type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
     </motion.aside>
   )
 }

@@ -4,7 +4,7 @@ import Navbar from '../shared/Navbar'
 import { Label } from '../ui/label'
 import { Input } from '../ui/input'
 import { Button } from '../ui/button'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { USER_API_END_POINT } from '@/utils/constant'
 import { toast } from 'sonner'
@@ -17,6 +17,7 @@ const item = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }
 
 const Login = () => {
   const [input, setInput] = useState({ email: '', password: '', role: '' })
+  const [redirectTo, setRedirectTo] = useState(null)
   const { loading, user } = useSelector((store) => store.auth)
   const navigate = useNavigate()
   const dispatch = useDispatch()
@@ -31,10 +32,16 @@ const Login = () => {
         headers: { 'Content-Type': 'application/json' },
         withCredentials: true,
       })
-      if (res.data.success) {
-        dispatch(setUser(res.data.user))
-        navigate('/')
-        toast.success(res.data.message)
+      // Support both res.data and res.data.data (nested) response shapes
+      const data = res.data?.data ?? res.data
+      if (data?.success && data?.user) {
+        dispatch(setUser(data.user))
+        toast.success(data.message || 'Welcome back')
+        // Next tick so router/Redux can process before redirect
+        setTimeout(() => setRedirectTo('/'), 0)
+      } else if (data?.success) {
+        toast.warning('Logged in but user data missing')
+        setTimeout(() => setRedirectTo('/'), 0)
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Login failed')
@@ -43,9 +50,17 @@ const Login = () => {
     }
   }
 
+  // Redirect if already logged in (e.g. after refresh when user is rehydrated from persist)
   useEffect(() => {
-    if (user) navigate('/')
-  }, [user, navigate])
+    if (user) {
+      setRedirectTo('/')
+    }
+  }, [user])
+
+  // Use <Navigate> so redirect works reliably with createBrowserRouter
+  if (redirectTo) {
+    return <Navigate to={redirectTo} replace />
+  }
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-slate-900">

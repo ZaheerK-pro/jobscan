@@ -29,7 +29,7 @@ const LatestJobs = () => {
             No jobs available right now. Check back soon!
           </div>
         ) : (
-          allJobs?.slice(0, 6).map((job) => <LatestJobCards key={job._id} job={job} />)
+          allJobs?.slice(0, 6).map((job) => <LatestJobCards key={job?.id ?? job._id} job={job} />)
         )}
       </div>
     </div>
